@@ -6,9 +6,10 @@ const isProduction = process.env.NODE_ENV === 'production';
 let poolConfig;
 
 if (process.env.DATABASE_URL) {
+  const isLocalDb = process.env.DATABASE_URL.includes("localhost") || process.env.DATABASE_URL.includes("127.0.0.1");
   poolConfig = {
     connectionString: process.env.DATABASE_URL,
-    ssl: isProduction ? { rejectUnauthorized: false } : false,
+    ssl: isLocalDb ? false : { rejectUnauthorized: false },
   };
 } else {
   poolConfig = {

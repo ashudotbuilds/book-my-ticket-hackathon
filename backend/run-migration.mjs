@@ -9,12 +9,25 @@ const __dirname = path.dirname(__filename);
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-const pool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: isProduction ? { rejectUnauthorized: false } : false,
+let poolConfig = {
   connectionTimeoutMillis: 15000,
   idleTimeoutMillis: 5000,
-});
+};
+
+if (process.env.DATABASE_URL) {
+  const isLocalDb = process.env.DATABASE_URL.includes("localhost") || process.env.DATABASE_URL.includes("127.0.0.1");
+  poolConfig.connectionString = process.env.DATABASE_URL;
+  poolConfig.ssl = isLocalDb ? false : { rejectUnauthorized: false };
+} else {
+  poolConfig.host = process.env.DB_HOST || "localhost";
+  poolConfig.port = process.env.DB_PORT || 5432;
+  poolConfig.user = process.env.DB_USER || "postgres";
+  poolConfig.password = process.env.DB_PASSWORD || "ashutosh";
+  poolConfig.database = process.env.DB_NAME || "booking_db";
+  poolConfig.ssl = false;
+}
+
+const pool = new pg.Pool(poolConfig);
 
 async function runMigration() {
   console.log("Connecting to database...");
